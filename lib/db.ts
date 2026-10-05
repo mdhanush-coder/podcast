@@ -14,6 +14,9 @@ const SCHEMA = `
 
 export type RunRow = { id: string; title: string | null; settings: Record<string, unknown>; created_at: Date; storage_prefix: string | null };
 
+// Off until DATABASE_URL is set: runs still work, but there is no history, daily cap or ownership check.
+export const dbOn = !!process.env.DATABASE_URL;
+
 // One client per process; globalThis keeps dev hot reloads from opening a new pool each time.
 const g = globalThis as unknown as { sql?: postgres.Sql; ready?: Promise<unknown> };
 

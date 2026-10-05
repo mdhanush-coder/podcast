@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { ArrowUpRight } from "lucide-react";
 import { Footer, Header, PageHead, btn, wrap } from "@/components/kit";
 import { userEmail } from "@/lib/auth";
-import { db, type RunRow } from "@/lib/db";
+import { db, dbOn, type RunRow } from "@/lib/db";
 import { RUNS_PER_DAY } from "@/lib/site";
 
 export const metadata: Metadata = { title: "My edits" };
@@ -15,11 +15,13 @@ const date = new Intl.DateTimeFormat("en", { dateStyle: "medium", timeStyle: "sh
 export default async function Edits() {
   const email = await userEmail();
   if (!email) redirect("/login?callbackUrl=/edits");
-  const sql = await db();
-  const [runs, [{ today }]] = await Promise.all([
-    sql<RunRow[]>`select id, title, settings, created_at from runs where user_email = ${email} order by created_at desc limit 200`,
-    sql<{ today: number }[]>`select count(*)::int as today from runs where user_email = ${email} and created_at > now() - interval '1 day'`,
-  ]);
+  const sql = dbOn ? await db() : null;
+  const [runs, [{ today }]] = sql
+    ? await Promise.all([
+        sql<RunRow[]>`select id, title, settings, created_at from runs where user_email = ${email} order by created_at desc limit 200`,
+        sql<{ today: number }[]>`select count(*)::int as today from runs where user_email = ${email} and created_at > now() - interval '1 day'`,
+      ])
+    : [[] as RunRow[], [{ today: 0 }]];
 
   return (
     <>

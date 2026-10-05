@@ -3,7 +3,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Footer, Header, Label, PageHead, btn, wrap } from "@/components/kit";
 import { auth, signOut } from "@/lib/auth";
-import { db } from "@/lib/db";
+import { db, dbOn } from "@/lib/db";
 import { RUNS_PER_DAY, SITE } from "@/lib/site";
 import { deleteRunFiles } from "@/lib/storage";
 
@@ -13,11 +13,13 @@ export default async function Account() {
   const session = await auth();
   const email = session?.user?.email;
   if (!email) redirect("/login?callbackUrl=/account");
-  const sql = await db();
-  const [{ total, today }] = await sql<{ total: number; today: number }[]>`
+  const sql = dbOn ? await db() : null;
+  const [{ total, today }] = sql
+    ? await sql<{ total: number; today: number }[]>`
     select count(*)::int as total,
            count(*) filter (where created_at > now() - interval '1 day')::int as today
-    from runs where user_email = ${email}`;
+    from runs where user_email = ${email}`
+    : [{ total: 0, today: 0 }];
 
   async function logout() {
     "use server";
@@ -29,6 +31,7 @@ export default async function Account() {
     "use server";
     const s = await auth();
     if (!s?.user?.email) return;
+    if (!dbOn) return signOut({ redirectTo: "/" });
     const sql = await db();
     const rows = await sql<{ storage_prefix: string | null }[]>`select storage_prefix from runs where user_email = ${s.user.email}`;
     await Promise.all(rows.flatMap((r) => (r.storage_prefix ? [deleteRunFiles(r.storage_prefix)] : [])));
@@ -50,7 +53,7 @@ export default async function Account() {
         <Link href="/edits" className={btn.ghost}>My edits</Link>
       </Header>
       <main className={`${wrap} flex-1 pt-12 pb-24`}>
-        <PageHead labels={["(Account)", "Signed in with Google"]} title="Account." />
+        <PageHead labels={["(Account)", "Demo account"]} title="Account." />
 
         <section className="mt-14">
           <Label n={1}>Details</Label>

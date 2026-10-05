@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { enginex } from "@/lib/enginex";
 import { unauthorized, userEmail } from "@/lib/auth";
-import { db } from "@/lib/db";
+import { db, dbOn } from "@/lib/db";
 import { FILES, signedUrl, storageOn } from "@/lib/storage";
 
 // Run status plus signed URLs for its file outputs, once they exist. Only the owner can see a run.
@@ -10,8 +10,10 @@ export async function GET(_req: Request, ctx: RouteContext<"/api/runs/[id]">) {
   const email = await userEmail();
   if (!email) return unauthorized();
   const { id } = await ctx.params;
-  const sql = await db();
-  const [owned] = await sql<{ storage_prefix: string | null }[]>`select storage_prefix from runs where id = ${id} and user_email = ${email}`;
+  const sql = dbOn ? await db() : null;
+  const [owned] = sql
+    ? await sql<{ storage_prefix: string | null }[]>`select storage_prefix from runs where id = ${id} and user_email = ${email}`
+    : [{ storage_prefix: null }];
   if (!owned) return Response.json({ error: { message: "This edit doesn't exist or belongs to another account." } }, { status: 404 });
 
   const { status, data: run } = await enginex(`/v1/runs/${encodeURIComponent(id)}`);
