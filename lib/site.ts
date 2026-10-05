@@ -6,7 +6,7 @@ export const SITE = {
   legalName: "[Deepsoch legal entity name]",
   address: "[Registered address]",
   jurisdiction: "[Governing-law jurisdiction]",
-  // Must match how long EngineX storage actually keeps uploads and outputs.
+  // How long EngineX keeps raw uploads; finished edits live in Supabase until deleted.
   retentionDays: 30,
   legalUpdated: "October 5, 2026",
 };

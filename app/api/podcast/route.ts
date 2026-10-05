@@ -3,6 +3,7 @@ import { enginex } from "@/lib/enginex";
 import { unauthorized, userEmail } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { RUNS_PER_DAY } from "@/lib/site";
+import { storageOn, userPrefix } from "@/lib/storage";
 
 export async function POST(request: Request) {
   const email = await userEmail();
@@ -24,12 +25,14 @@ export async function POST(request: Request) {
   if (n >= RUNS_PER_DAY)
     return Response.json({ error: { message: `You've reached today's limit of ${RUNS_PER_DAY} edits. It resets 24 hours after your earliest edit today.` } }, { status: 429 });
 
-  const { status, data } = await enginex(`/v1/run/${template}`, built.body);
+  // The pipeline copies finished files to <saveTo>/… in our bucket.
+  const saveTo = storageOn ? `${userPrefix(email)}/${crypto.randomUUID()}` : null;
+  const { status, data } = await enginex(`/v1/run/${template}`, saveTo ? { ...built.body, saveTo } : built.body);
   const runId = data?.runId ?? data?.id;
   if (status < 300 && typeof runId === "string") {
     const title = typeof built.body.title === "string" ? built.body.title : null;
-    await sql`insert into runs (id, user_email, title, settings)
-      values (${runId}, ${email}, ${title}, ${sql.json(built.body as never)})`;
+    await sql`insert into runs (id, user_email, title, settings, storage_prefix)
+      values (${runId}, ${email}, ${title}, ${sql.json(built.body as never)}, ${saveTo})`;
   }
   return Response.json(data, { status });
 }

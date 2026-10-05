@@ -8,10 +8,11 @@ const SCHEMA = `
     settings jsonb not null default '{}',
     created_at timestamptz not null default now()
   );
+  alter table runs add column if not exists storage_prefix text;
   create index if not exists runs_user_created on runs (user_email, created_at desc);
 `;
 
-export type RunRow = { id: string; title: string | null; settings: Record<string, unknown>; created_at: Date };
+export type RunRow = { id: string; title: string | null; settings: Record<string, unknown>; created_at: Date; storage_prefix: string | null };
 
 // One client per process; globalThis keeps dev hot reloads from opening a new pool each time.
 const g = globalThis as unknown as { sql?: postgres.Sql; ready?: Promise<unknown> };

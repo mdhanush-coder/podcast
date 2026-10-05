@@ -44,8 +44,9 @@ export default function Terms() {
 
       <h2>Files and availability</h2>
       <p>
-        Uploads and rendered files are deleted after {SITE.retentionDays} days, so download what you want to keep. We work to keep the service
-        running but don&apos;t guarantee it will always be available or that every edit will finish.
+        Finished edits are kept in your account until you delete them. Raw uploads are deleted after {SITE.retentionDays} days. We work to keep
+        the service running but don&apos;t guarantee it will always be available or that every edit will finish, so keep your own copy of
+        anything important.
       </p>
 
       <h2>Disclaimers and liability</h2>
@@ -56,7 +57,7 @@ export default function Terms() {
 
       <h2>Ending the agreement</h2>
       <p>
-        You can stop using the service and delete your edit history any time from your account page. We may end or suspend access if you
+        You can stop using the service and delete your edits any time from your account page. We may end or suspend access if you
         break these terms, with notice where reasonable.
       </p>
 

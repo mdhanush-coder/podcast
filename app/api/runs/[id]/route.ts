@@ -3,8 +3,7 @@
 import { enginex } from "@/lib/enginex";
 import { unauthorized, userEmail } from "@/lib/auth";
 import { db } from "@/lib/db";
-
-const FILE_OUTPUTS = ["video", "premiere", "fcpxml", "edl", "timeline", "edit"];
+import { FILES, signedUrl, storageOn } from "@/lib/storage";
 
 // Run status plus signed URLs for its file outputs, once they exist. Only the owner can see a run.
 export async function GET(_req: Request, ctx: RouteContext<"/api/runs/[id]">) {
@@ -12,16 +11,23 @@ export async function GET(_req: Request, ctx: RouteContext<"/api/runs/[id]">) {
   if (!email) return unauthorized();
   const { id } = await ctx.params;
   const sql = await db();
-  const [owned] = await sql`select 1 from runs where id = ${id} and user_email = ${email}`;
+  const [owned] = await sql<{ storage_prefix: string | null }[]>`select storage_prefix from runs where id = ${id} and user_email = ${email}`;
   if (!owned) return Response.json({ error: { message: "This edit doesn't exist or belongs to another account." } }, { status: 404 });
 
   const { status, data: run } = await enginex(`/v1/runs/${encodeURIComponent(id)}`);
   if (status !== 200) return Response.json(run, { status });
 
   const outputs = run.outputs ?? run.output ?? run.result ?? {};
-  const keys = FILE_OUTPUTS.map((f) => outputs[f]).filter((k): k is string => typeof k === "string");
+  const keys = Object.keys(FILES).map((f) => outputs[f]).filter((k): k is string => typeof k === "string");
   let urls: Record<string, string> = {};
-  if (keys.length) {
+  const prefix = owned.storage_prefix;
+  if (prefix && storageOn && outputs.saved) {
+    // Saved copies in our bucket outlive EngineX retention. Keyed by the EngineX key, which is what the page looks up.
+    const entries = await Promise.all(
+      Object.entries(FILES).filter(([f]) => typeof outputs[f] === "string").map(async ([f, name]) => [outputs[f], await signedUrl(`${prefix}/${name}`)]),
+    );
+    urls = Object.fromEntries(entries);
+  } else if (keys.length) {
     const signed = await enginex("/v1/outputs/sign", { keys, download: true });
     urls = toUrlMap(signed.data);
   }

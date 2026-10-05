@@ -5,6 +5,7 @@ import { Footer, Header, Label, PageHead, btn, wrap } from "@/components/kit";
 import { auth, signOut } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { RUNS_PER_DAY, SITE } from "@/lib/site";
+import { deleteRunFiles } from "@/lib/storage";
 
 export const metadata: Metadata = { title: "Account" };
 
@@ -29,6 +30,8 @@ export default async function Account() {
     const s = await auth();
     if (!s?.user?.email) return;
     const sql = await db();
+    const rows = await sql<{ storage_prefix: string | null }[]>`select storage_prefix from runs where user_email = ${s.user.email}`;
+    await Promise.all(rows.flatMap((r) => (r.storage_prefix ? [deleteRunFiles(r.storage_prefix)] : [])));
     await sql`delete from runs where user_email = ${s.user.email}`;
     await signOut({ redirectTo: "/" });
   }
@@ -68,16 +71,16 @@ export default async function Account() {
         <section className="mt-20 border border-border bg-destructive-soft/40 p-6 sm:p-8">
           <Label n={2}>Delete your data</Label>
           <p className="mt-4 max-w-2xl leading-relaxed">
-            This removes your edit history from {SITE.name} and signs you out. Uploaded footage and rendered files are deleted
+            This removes your edit history and every saved video and timeline, then signs you out. Raw uploads are deleted
             automatically after {SITE.retentionDays} days. To have them removed sooner, email{" "}
             <a href={`mailto:${SITE.supportEmail}`} className="underline">{SITE.supportEmail}</a>.
           </p>
           <details className="mt-6">
             <summary className={`${btn.ghost} cursor-pointer list-none border-destructive text-destructive hover:bg-destructive hover:text-background`}>
-              Delete my edit history
+              Delete my edits
             </summary>
             <form action={deleteData} className="mt-4 flex flex-wrap items-center gap-4">
-              <p className="text-destructive">This can&apos;t be undone. {total} edits will be removed.</p>
+              <p className="text-destructive">This can&apos;t be undone. {total} edits and their files will be removed.</p>
               <button type="submit" className={`${btn.primary} bg-destructive hover:bg-destructive/85`}>Yes, delete everything</button>
             </form>
           </details>
