@@ -1,36 +1,36 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# deepsoch podcast
 
-## Getting Started
+Upload a podcast episode, get a vertical cut that follows the speaker plus timelines for Premiere, Final Cut, Resolve and any EDL editor. Editing runs on GPU through the EngineX `podcast_edit` template.
 
-First, run the development server:
+## Setup
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+1. `npm install`
+2. Copy `.env.example` to `.env.local` and fill it in:
+   - **EngineX**: `EDITOR_API_KEY`, `EDITOR_TEMPLATE_ID`
+   - **Auth**: `AUTH_SECRET` (`npx auth secret`), and a Google OAuth client with redirect URI `<SITE_URL>/api/auth/callback/google`
+   - **Database**: `DATABASE_URL` for Postgres (Neon or Supabase). The `runs` table is created automatically.
+3. `npm run dev` and open http://localhost:3000
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Pages
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+| Route | What it is | Sign-in |
+|---|---|---|
+| `/` | Landing page | — |
+| `/pricing`, `/contact`, `/privacy`, `/terms` | Public info | — |
+| `/login` | Google sign-in | — |
+| `/studio` | Upload footage and choose settings | required |
+| `/runs/[id]` | Progress and result of one edit (owner only) | required |
+| `/edits` | All your edits | required |
+| `/account` | Usage, sign out, delete edit history | required |
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+`proxy.ts` sends signed-out visitors to `/login`. The API routes check the session themselves, and `/api/podcast` enforces `RUNS_PER_DAY`.
 
-## Learn More
+## Before launch
 
-To learn more about Next.js, take a look at the following resources:
+- Fill in the placeholders in `lib/site.ts` (legal entity, address, jurisdiction) and set `retentionDays` to match the storage retention you actually have.
+- Set real prices in `app/pricing/page.tsx`.
+- Have the privacy policy and terms reviewed.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Tests
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+`node --experimental-strip-types lib/podcast-run.test.ts`

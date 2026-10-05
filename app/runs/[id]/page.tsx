@@ -112,7 +112,10 @@ export default function RunPage() {
   return (
     <>
       <Header>
-        <Link href="/studio" className={btn.ghost}>New edit</Link>
+        <nav className="flex items-center gap-1">
+          <Link href="/edits" className="hidden min-h-11 items-center px-3 text-[15px] text-muted-foreground hover:text-foreground sm:flex">my edits</Link>
+          <Link href="/studio" className={btn.ghost}>New edit</Link>
+        </nav>
       </Header>
       <main className={`${wrap} flex-1 pt-12 pb-24`}>
         <div className="flex flex-wrap justify-between gap-4 border-b border-border pb-4">

@@ -38,7 +38,7 @@ export default function Home() {
     <>
       <Header sticky>
         <nav className="flex items-center gap-1 text-[15px]">
-          {[["#how", "how it works"], ["#controls", "controls"], ["#exports", "exports"], ["#faq", "faq"]].map(([href, t]) => (
+          {[["#how", "how it works"], ["#exports", "exports"], ["/pricing", "pricing"], ["/edits", "my edits"]].map(([href, t]) => (
             <a key={href} href={href} className="hidden min-h-11 items-center px-3 text-muted-foreground hover:text-foreground md:flex">{t}</a>
           ))}
           <Link href="/studio" className={btn.primary}>Start editing</Link>

@@ -1,12 +1,20 @@
 // Upstream EngineX run/sign bodies are undocumented beyond prose, so they stay loosely typed.
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { enginex } from "@/lib/enginex";
+import { unauthorized, userEmail } from "@/lib/auth";
+import { db } from "@/lib/db";
 
 const FILE_OUTPUTS = ["video", "premiere", "fcpxml", "edl", "timeline", "edit"];
 
-// Run status plus signed URLs for its file outputs, once they exist.
+// Run status plus signed URLs for its file outputs, once they exist. Only the owner can see a run.
 export async function GET(_req: Request, ctx: RouteContext<"/api/runs/[id]">) {
+  const email = await userEmail();
+  if (!email) return unauthorized();
   const { id } = await ctx.params;
+  const sql = await db();
+  const [owned] = await sql`select 1 from runs where id = ${id} and user_email = ${email}`;
+  if (!owned) return Response.json({ error: { message: "This edit doesn't exist or belongs to another account." } }, { status: 404 });
+
   const { status, data: run } = await enginex(`/v1/runs/${encodeURIComponent(id)}`);
   if (status !== 200) return Response.json(run, { status });
 

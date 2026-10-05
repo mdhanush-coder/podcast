@@ -36,6 +36,21 @@ export function Header({ sticky, children }: { sticky?: boolean; children?: Reac
   );
 }
 
+export const h1 = "text-[clamp(44px,7.2vw,92px)] text-foreground";
+
+// Top of every inner page: a ruled row of labels, then the headline.
+export function PageHead({ labels, title, children }: { labels: string[]; title: React.ReactNode; children?: React.ReactNode }) {
+  return (
+    <>
+      <div className="flex flex-wrap justify-between gap-4 border-b border-border pb-4">
+        {labels.map((l) => <Label key={l}>{l}</Label>)}
+      </div>
+      <h1 className={cn(h1, "mt-10 max-w-[16ch]")}>{title}</h1>
+      {children && <div className="mt-8 max-w-2xl text-lg leading-relaxed">{children}</div>}
+    </>
+  );
+}
+
 // Small uppercase mono label with an optional (01)-style index, used above every section and field.
 export function Label({ n, children, className }: { n?: number; children: React.ReactNode; className?: string }) {
   return (
@@ -131,8 +146,8 @@ export const fmt = (sec: number) => `${Math.floor(sec / 60)}:${String(Math.floor
 
 const FOOTER_LINKS = [
   ["Product", [["/#how", "How it works"], ["/#controls", "Controls"], ["/#exports", "Exports"], ["/#faq", "FAQ"]]],
-  ["Studio", [["/studio", "New edit"], ["/studio?footage=angles", "Multi-camera edit"]]],
-  ["Exports to", [["/#exports", "Premiere Pro"], ["/#exports", "Final Cut Pro"], ["/#exports", "DaVinci Resolve"], ["/#exports", "Any editor (EDL)"]]],
+  ["Studio", [["/studio", "New edit"], ["/studio?footage=angles", "Multi-camera edit"], ["/edits", "My edits"], ["/account", "Account"]]],
+  ["Company", [["/pricing", "Pricing"], ["/contact", "Contact"], ["/privacy", "Privacy"], ["/terms", "Terms"]]],
 ] as const;
 
 export function Footer() {
