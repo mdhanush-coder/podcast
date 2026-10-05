@@ -1,98 +1,92 @@
 # Design — deepsoch podcast
 
-Source of truth for the UI. Mockups: **[Podcast Reframe UI](https://claude.ai/artifact/P6guudhHvetDayBwQ1J8v5)** (private, so share it from the page before sending the link). The board has four screens: Landing, Studio, Result, and Result states. Reference for structure: Notus NextJS (Creative Tim).
+Source of truth for the UI. Structure and typography are modelled on an editorial studio style (reference: mattis.framer.website). **The palette is our own and must never match that reference**, which is black/white with an orange-red accent. Ours is forest ink on warm bone with a lime highlight.
 
-Direction: calm, minimal, quiet. Cool slate neutrals, white cards, soft shadows, plenty of whitespace, a single accent. Motion appears in only two places: the hero and progress.
+Direction: editorial, flat, confident. Very large tight headlines, small uppercase mono labels with `(01)`-style numbering, square corners, hairline rules instead of shadows. Motion appears in only two places: the hero and progress.
 
 ## Tokens
 
-Set these as the shadcn theme variables in `app/globals.css`. They replace the `taupe` base color.
+Set as the theme variables in `app/globals.css`.
 
 | Token | Value | Use |
 |---|---|---|
-| `--background` | `#F5F6F8` | page ground |
-| `--card` | `#FFFFFF` | cards, header |
-| `--foreground` | `#0E1726` | headings, primary text, dark band |
-| `--text-body` | `#3D4757` | body copy |
-| `--muted-foreground` | `#5A6475` | helper text, meta (≥4.5:1 on white and ground) |
-| `--border` | `#E3E6EB` | card borders, dividers (`#EEF0F3` inside cards) |
-| `--input` | `#D5DAE1` | inputs, ghost buttons |
-| `--muted` | `#F1F3F6` | segmented-control track, chips, file icons |
-| `--primary` | `#2F55D4` | accent: primary buttons, focus, selected shape, progress |
-| `--primary-soft` | `rgba(47,85,212,0.10)` | icon badges, selected shape fill |
-| `--success` | `#1F7A4D` on `#E7F4EC` | "Ready", uploaded |
-| `--destructive` | `#A8281C` on `#FDECEA` / `#FDF6F5` | failed state |
+| `--background` | `#EFEBE3` | page ground (warm bone) |
+| `--card` | `#F7F4EE` | cards, alternate section bands |
+| `--foreground` / `--primary` | `#10231C` | ink: headings, primary buttons, selected states, dark bands, progress |
+| `--text-body` | `#2F3F38` | body copy |
+| `--muted-foreground` | `#5C675F` | labels, helper text, meta |
+| `--highlight` | `#C6F432` | lime: headline highlights, accents on ink, CTA button on dark, crop window |
+| `--muted` / `--hairline` | `#E3DDD1` | chips, dividers inside cards |
+| `--border` | `#D6CFC1` | card borders, rules |
+| `--input` | `#BFB7A7` | inputs, dropzone dash |
+| `--success` | `#2E6B3F` on `#DCEBD9` | "Ready", uploaded |
+| `--destructive` | `#9E2A2B` on `#F3DCD8` | failed state |
 
-Alternative accents explored: teal `#2E7D6B`, clay `#B5502F`, ink `#0E1726`.
+Lime is only placed on ink, or as a fill under ink text. It's never used for text or thin lines on bone, where its contrast is too low.
 
-Shot-kind colors (they differ in lightness, not hue alone): Wide `#C9D1DC`, Single = accent, Reaction `#8FA7EE`, Split `#0E1726`.
+On ink bands: headings `#EFEBE3`, body `#C9D3CC`, labels `#9FB8A6`, rules `#2B4238`.
 
-- **Type:** Geist for UI text, Geist Mono for labels, file types and times (both already loaded by `app/layout.tsx`).
-  - H1: hero `clamp(40px, 5vw, 64px)`, app pages 32–34px.
-  - H2: `clamp(30px, 3.4vw, 44px)`.
-  - Letter-spacing: `-0.03em` on headings.
-  - Body: 16–19px with line-height 1.6.
-  - Weights: 600 for headings, 500 for buttons.
-- **Radius:**
-  - Cards: 18–22px.
-  - Inputs and segmented tracks: 10–12px.
-  - Buttons and pills: full (999px).
-- **Shadow:** cards usually take only a border. Hero and feature cards add `0 24px 48px -24px rgba(14,23,38,.18)`.
-- **Layout:** `max-width: 1200px` and `24px` side padding. Sections use `96px` vertical padding. Columns are flex-wrap rows, so they stack at phone width.
-- **Motion:** use Motion (motion.dev) for the hero reframe loop, the indeterminate progress bar and the pulsing status dot. Everything else stays still. Respect `prefers-reduced-motion`.
+Shot-kind colors (they differ in lightness, not hue alone): Wide `#CFC8BA`, Single `#10231C`, Reaction `#9FB8A6`, Split `#4F7A62`.
+
+- **Type:** Geist for UI text, Geist Mono for labels, file types and times.
+  - Display: `clamp(44px, 7.2vw, 92px)` (hero, closing CTA).
+  - H2: `clamp(36px, 5.2vw, 68px)`, often split across two lines with the second line muted.
+  - App page H1: `clamp(40px, 5.6vw, 72px)`.
+  - Headings: weight 500, letter-spacing `-0.05em`, line-height 0.95.
+  - Labels (`.label`): Geist Mono 12px, uppercase, `0.02em`, muted. Section labels carry an index: `(01) How it works`.
+  - Body: 16–18px, line-height 1.6. Statement paragraphs `clamp(22px, 2.4vw, 32px)`, tracking `-0.03em`.
+- **Radius:** 0 everywhere, except pills (buttons, chips, status) and the switch, which are fully round.
+- **Depth:** none. Cards are `--card` with a `--border` hairline. Lists use a 1px ink rule on top and hairlines between rows.
+- **Layout:** `max-width: 1280px`, `24px` side padding, `96px` section padding. Each section opens with a big heading left and its numbered label right. Columns are flex-wrap rows that stack at phone width.
+- **Motion:** Lenis smooth scrolling site-wide (`components/smooth-scroll.tsx`; anchors glide too). CSS for the hero crop-window loop, progress bars, the pulsing status dot, the render-preview scan line, and `.reveal` sections that rise in on scroll (`animation-timeline: view()`). Result stats count up. All of it is off under `prefers-reduced-motion`.
 - **Accessibility:**
   - Touch targets ≥ 44px.
-  - Use real `<button>`, `<a>` and `<label>` elements.
-  - Segmented controls are `role="radiogroup"`/`radio`, and the sync toggle is `role="switch"`.
+  - Use real `<button>`, `<a>`, `<label>` and `<details>` elements.
+  - Segmented controls and shape tiles are native radio groups, and the sync toggle is `role="switch"`.
   - Icon-only buttons get `aria-label`.
 
 ## Components
 
-Built on shadcn/ui (Base UI) and Lucide icons. Skiper's free components go where they add something; `skiper40` is installed.
+All in `components/kit.tsx`, built from native elements and Lucide icons.
 
-| Component | Build from | Notes |
-|---|---|---|
-| Header | markup | logo mark (dark square with a 9:16 outline), wordmark `deepsoch`, `podcast` pill; sticky + blurred on landing |
-| Button | shadcn `Button` | variants: primary (accent pill), ghost (white + `--input` border), on-dark (white) |
-| Segmented control | shadcn `ToggleGroup` | grey track, selected item = white chip + hairline shadow |
-| Shape picker | `ToggleGroup` | 4 tiles drawing the aspect ratio outline; selected = accent border + soft fill |
-| Dropzone | `<label>` + hidden `<input type=file>` | dashed `#C9D1DC`, icon badge, "MP4 or MOV · up to 5 GB per file" |
-| File row | markup + shadcn `Progress` | states: uploading (bar + %), uploaded (green check + size), waiting; remove button |
-| Switch | shadcn `Switch` | accent when on |
-| Collapsible | shadcn `Collapsible` | "Advanced" section |
-| Slider | shadcn `Slider` | quality 10–40 with the value in mono |
-| Status pill | `Badge` | Ready (green), Editing (accent + pulse), Didn't finish (red) |
-| Download row | markup | mono type tag (`MP4`, `XML`, …), name, file + format, Download button |
-| Shot strip | markup | one flex segment per shot, `flex-grow` = duration, hover title = kind + times |
+| Component | Notes |
+|---|---|
+| Header | logo mark (ink square with a lime 9:16 outline), wordmark `deepsoch®`, mono `PODCAST` label; lowercase nav links; sticky + blurred on landing |
+| Button | mono uppercase pills: primary (ink), ghost (ink outline, fills on hover), on-dark (lime) |
+| Label | mono uppercase meta text with optional `(01)` index |
+| Segmented control | hairline-bordered row of cells; selected cell = ink fill, bone text |
+| Shape picker | 4 square tiles drawing the aspect outline; selected = ink border + faint ink fill |
+| Dropzone | `<label>` + hidden `<input type=file>`, dashed `--input`, "MP4 or MOV · up to 5 GB per file" |
+| File row | uploading (bar + %), uploaded (green check + size), error; remove button |
+| Switch | ink outline track; on = ink track with lime knob |
+| Advanced | native `<details>` |
+| Slider | native range, ink accent, value in mono |
+| Status pill | Ready (green), Editing (ink + lime text, pulsing dot), Didn't finish (red) |
+| Numbered row | `(01)` label, large title, description, optional mono tag on the right |
+| FAQ | `<details>` rows under an ink rule, `+` rotates to `×` |
+| Shot strip | flex segment per shot, `flex-grow` = duration, hover title = kind + times |
+| Timeline (result) | scrubbable shot strip synced to the video: lime playhead, hover tooltip (kind, times, people), click to seek, arrow keys ±5 s, dims shots outside the active filter |
+| Footer | ink band on every page: tagline + lime CTA, link columns, giant `deepsoch®` wordmark, © line |
 
 ## Pages
 
 ### `/`: Landing
 
-1. **Header:** links to How it works, Controls and Exports; **Start editing** button goes to `/studio`.
+1. **Header:** links to how it works, controls, exports and faq; **Start editing** button goes to `/studio`.
 2. **Hero:**
-   - Pill: "Smart podcast editing".
-   - H1: "Your conversation, re-cut for every screen."
+   - Meta row of labels above a rule: "(Smart podcast editing — v1.0)", "Renders on: GPU", "Exports: 5 formats".
+   - Display H1: "Your conversation, re-cut for every screen." with "every screen." on a lime fill.
    - Body: "Upload the episode — one video or every camera. The edit follows whoever is talking, cuts to reactions, and leans in as a point builds. You get a vertical cut and the timeline to keep refining it."
-   - Buttons: **Start editing** and **See how it works**.
-   - Exports line: "Exports to Premiere Pro · Final Cut Pro · DaVinci Resolve · EDL".
-   - Visual: a 16:9 frame with two speakers and a 9:16 crop window gliding to whoever talks (9 s loop), plus a phone preview crossfading in sync. Under it, the shot strip "The first 77 seconds of a real edit".
-3. **How it works:**
-   - Heading: "From raw footage to a finished cut".
-   - Cards: **Upload**, **Set the feel**, **Download** (numbered 01–03 with icon badges).
-4. **Controls:**
-   - Heading: "You set the feel. It does the cutting."
-   - Shape tiles: 9:16, 1:1, 4:5, 16:9.
-   - A card listing Layout, Reactions, Motion, Framing and Pace with option chips; defaults shown dark.
-5. **Multi-camera:**
-   - Heading: "Bring every angle".
-   - Visual: waveform rows for clean audio and cameras 1–3, each sitting where its sound matches.
-   - Bullets: up to 99 clips in any order; sync off when every camera started together; clean audio becomes the soundtrack.
-6. **Exports:**
-   - Heading: "Finish it in your editor".
-   - Cards: Edited video (MP4), Premiere Pro (XML), Final Cut Pro · Resolve (FCPXML), Any editor (EDL), Shot list (JSON).
-7. **Call-to-action band:** dark, "Start with your next episode." with a white **Start editing** button.
-8. **Footer:** wordmark, links, © 2026 Deepsoch.
+   - Buttons: **Start editing ↗** and **↓ See how it works**.
+   - Visual: a 16:9 ink frame with two speakers and a lime 9:16 crop window gliding to whoever talks (9 s loop), plus a phone preview. Under it, the shot strip labelled "The first 77 seconds of a real edit" and "0:00 — 1:17".
+3. **(01) Why it works:** card band, H2 "Follow / the voice." and a large statement paragraph with "whoever is talking" highlighted.
+4. **(02) How it works:** H2 "From raw footage / to a finished cut"; numbered rows **Upload**, **Set the feel**, **Download**.
+5. **(03) Controls:** H2 "You set the feel. / It does the cutting." (second line muted); one card with the four shape outlines and a table of Layout, Reactions, Motion, Framing and Pace chips, defaults in ink.
+6. **(04) Multi-camera:** ink band, H2 "Bring every / angle."; waveform rows (clean audio in lime) and three big lime figures: 99 clips, Sync, 1 clean audio track.
+7. **(05) Exports:** H2 "Finish it in / your editor."; numbered rows: Edited video (MP4), Premiere Pro (XML), Final Cut Pro · Resolve (FCPXML), Any editor (EDL), Shot list (JSON).
+8. **(06) FAQ:** card band, H2 "Before you / upload."; five questions on files, sync, render time, editing afterwards, and failed edits.
+9. **Call-to-action band:** ink, display "Start with your next episode." ("next episode." in lime) with the lime **Start editing ↗** button.
+10. **Footer:** logo and links above a rule; "© 2026 Deepsoch" and "Made for podcasts" labels.
 
 ### `/studio`: New edit
 
@@ -137,7 +131,7 @@ Two cards that stack at narrow widths.
     - the fix as a button, e.g. **Try again with sync off** or **Add clean audio**
     - the raw EngineX error under Details
 
-## UI → pipeline (`podcast_edit`, `tpl_Zb8c6gf4LP3O`)
+## UI → pipeline (`podcast_edit`, id in `EDITOR_TEMPLATE_ID`)
 
 | Field | Control | Values | Default |
 |---|---|---|---|
